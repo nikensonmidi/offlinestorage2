@@ -1,0 +1,20 @@
+.dispatch-grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 2fr) repeat(2, 1fr);
+  grid-template-rows: 1fr;
+ grid-template-areas: "dispatch-customer dispatch-sop dispatch-status dispatch-delete"
+}
+
+.dispatch-customer {
+  grid-area: dispatch-customer; }
+
+.dispatch-sop { grid-area: dispatch-sop; }
+
+.dispatch-status { grid-area: dispatch-status; }
+
+.dispatch-delete { grid-area: dispatch-delete; }
+
+.grid-body {
+border: 1px solid gray;
+text-align: center;
+}
