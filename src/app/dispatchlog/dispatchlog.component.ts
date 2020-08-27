@@ -7,6 +7,7 @@ import { DispatchlogService } from '../services/dispatchlog.service';
 import { tap, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
+
 @Component({
   selector: 'app-dispatchlog',
   templateUrl: './dispatchlog.component.html',
@@ -15,6 +16,13 @@ import { Observable } from 'rxjs';
 export class DispatchlogComponent implements OnInit {
   dispatchLogs: Observable<Dispatchlog[]>;
   editingLog: Dispatchlog;
+  columnDefs = [
+    {headerName: 'Customer', field: 'customer' },
+    {headerName: 'Sop', field: 'sop' },
+    {headerName: 'Status', field: 'status'}
+];
+
+
   constructor(
     private modalService: NgbModal,
     private dialog: MatDialog,
