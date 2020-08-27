@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Dispatchlog } from '../models/dipatchlog';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MatDialog, MatDialogConfig } from '@angular/material';
@@ -6,7 +6,7 @@ import { DialogboxComponent } from '../dialogbox/dialogbox.component';
 import { DispatchlogService } from '../services/dispatchlog.service';
 import { tap, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-
+import { AgGridColumn } from 'ag-grid-angular';
 
 @Component({
   selector: 'app-dispatchlog',
@@ -16,12 +16,27 @@ import { Observable } from 'rxjs';
 export class DispatchlogComponent implements OnInit {
   dispatchLogs: Observable<Dispatchlog[]>;
   editingLog: Dispatchlog;
-  columnDefs = [
-    {headerName: 'Customer', field: 'customer' },
-    {headerName: 'Sop', field: 'sop' },
-    {headerName: 'Status', field: 'status'}
-];
-
+  style;
+  gridApi;
+  gridColumnApi;
+  rowSelection: string;
+  private _columnDefs = [
+    {
+      headerName: 'Customer',
+      sortable: true,
+      resizable: true,
+      field: 'customer',
+    },
+    { headerName: 'Sop', sortable: true, resizable: true, field: 'sop' },
+    { headerName: 'Status', sortable: true, resizable: true, field: 'status' },
+  ];
+  public get columnDefs() {
+    return this._columnDefs;
+  }
+  public set columnDefs(value) {
+    this._columnDefs = value;
+  }
+  @ViewChild('loggrid') logGrid;
 
   constructor(
     private modalService: NgbModal,
@@ -35,17 +50,34 @@ export class DispatchlogComponent implements OnInit {
       .pipe(map((actions) => actions.map((a) => a.payload.doc.data())));
   }
 
-  generateDispatchlog(): void {
-    // for (let index = 0; index < 100; index++) {
-    //   const elem: Dispatchlog = {
-    //     $key: index + '',
-    //     customer: 'Alebar' + index,
-    //     sop: 'Omhgher',
-    //     status: 'pending',
-    //   };
-    //   this.dispatchLogs.push(elem);
-    // }
+  setWidthAndHeight(width, height) {
+    this.style = {
+      marginTop: '20px',
+      width,
+      height,
+    };
   }
+  onGridReady(params) {
+    this.gridApi = params.api;
+    this.gridColumnApi = params.columnApi;
+    this.rowSelection = 'single';
+    params.api.sizeColumnsToFit();
+    window.addEventListener('resize', () => {
+      setTimeout(() => {
+        params.api.sizeColumnsToFit();
+      });
+    });
+
+    params.api.sizeColumnsToFit();
+  }
+  onSelectionChanged(event: any) {
+    const selectedRowObj: any = this.gridApi.getSelectedRows();
+    const selectedRow = selectedRowObj ? selectedRowObj[0] as Dispatchlog : {}as Dispatchlog;
+    this.editRecord(selectedRow);
+
+    // console.log(this.gridColumnApi);
+  }
+
   addNewRecord(): void {
     const dialogConfig = new MatDialogConfig();
 
@@ -73,11 +105,18 @@ export class DispatchlogComponent implements OnInit {
     const dialogRef = this.dialog.open(DialogboxComponent, dialogConfig);
 
     dialogRef.afterClosed().subscribe((data) => {
-      if (data) {
+
+      if (data && !data.deleted) {
         record.customer = data.customer;
         record.sop = data.sop;
         record.status = data.status;
         this.logservice.editLog(record);
+      }
+      if( data && data.deleted ) {
+        record.customer = data.customer;
+        record.sop = data.sop;
+        record.status = data.status;
+        this.delete(record);
       }
     });
   }

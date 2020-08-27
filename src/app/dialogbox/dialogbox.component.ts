@@ -39,4 +39,8 @@ export class DialogboxComponent implements OnInit {
   close() {
     this.dialogRef.close();
   }
+  delete() {
+    this.form.value.deleted = true;
+    this.dialogRef.close( this.form.value);
+  }
 }
